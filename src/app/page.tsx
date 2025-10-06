@@ -12,12 +12,50 @@ import {
   Gift,
   ChevronRight,
   Menu,
-  X
+  X,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  ArrowLeft,
+  CheckCircle,
+  Loader
 } from 'lucide-react'
 
 export default function ArenaXbet() {
   const [activeTab, setActiveTab] = useState('esportes')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [isRegisterMode, setIsRegisterMode] = useState(false)
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false)
+  const [isCodeVerificationMode, setIsCodeVerificationMode] = useState(false)
+  const [isPhoneVerificationMode, setIsPhoneVerificationMode] = useState(false)
+  const [isRegistrationComplete, setIsRegistrationComplete] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  })
+  const [registerForm, setRegisterForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: ''
+  })
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    phone: ''
+  })
+  const [verificationForm, setVerificationForm] = useState({
+    code: ''
+  })
+  const [phoneVerificationForm, setPhoneVerificationForm] = useState({
+    code: ''
+  })
+  const [generatedCode, setGeneratedCode] = useState('')
+  const [phoneVerificationCode, setPhoneVerificationCode] = useState('')
 
   const esportes = [
     { nome: 'Futebol', icon: '⚽', jogos: 156, destaque: true },
@@ -62,10 +100,582 @@ export default function ArenaXbet() {
     { nome: 'Sweet Bonanza', categoria: 'Slots' },
   ]
 
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Aqui você pode adicionar a lógica de autenticação
+    console.log('Login attempt:', loginForm)
+    // Fechar modal após login (simulado)
+    setLoginModalOpen(false)
+    setLoginForm({ email: '', password: '' })
+  }
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsProcessing(true)
+    
+    try {
+      // Simular salvamento no banco de dados
+      console.log('Salvando cadastro no banco de dados:', registerForm)
+      await new Promise(resolve => setTimeout(resolve, 2000)) // Simular delay da API
+      
+      // Gerar código de verificação do celular
+      const phoneCode = Math.floor(100000 + Math.random() * 900000).toString()
+      setPhoneVerificationCode(phoneCode)
+      
+      // Simular envio do código para o celular
+      console.log(`Código de verificação ${phoneCode} enviado para: ${registerForm.phone}`)
+      
+      // Simular envio de email de boas-vindas
+      console.log(`Email de boas-vindas enviado para: ${registerForm.email}`)
+      
+      // Mostrar código para demonstração (em produção seria enviado via SMS)
+      alert(`Cadastro salvo! Código enviado para ${registerForm.phone}: ${phoneCode}\n\nEmail de boas-vindas enviado para: ${registerForm.email}`)
+      
+      // Ir para verificação do celular
+      setIsPhoneVerificationMode(true)
+      
+    } catch (error) {
+      console.error('Erro no cadastro:', error)
+      alert('Erro ao processar cadastro. Tente novamente.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Gerar código aleatório de 6 dígitos
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    setGeneratedCode(code)
+    
+    // Simular envio do código
+    console.log(`Código ${code} enviado para o número: ${forgotPasswordForm.phone}`)
+    alert(`Código de verificação enviado para ${forgotPasswordForm.phone}: ${code}`)
+    
+    // Ir para tela de verificação
+    setIsCodeVerificationMode(true)
+  }
+
+  const handleCodeVerificationSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (verificationForm.code === generatedCode) {
+      alert('Código verificado com sucesso! Você pode redefinir sua senha.')
+      // Aqui você redirecionaria para tela de redefinir senha
+      resetForgotPasswordFlow()
+    } else {
+      alert('Código incorreto. Tente novamente.')
+    }
+  }
+
+  const handlePhoneVerificationSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (phoneVerificationForm.code === phoneVerificationCode) {
+      // Verificação bem-sucedida
+      setIsRegistrationComplete(true)
+      
+      // Simular finalização do cadastro
+      setTimeout(() => {
+        alert('Cadastro concluído com sucesso! Bem-vindo à ArenaXbet!')
+        resetRegistrationFlow()
+      }, 2000)
+    } else {
+      alert('Código incorreto. Tente novamente.')
+    }
+  }
+
+  const openRegisterMode = () => {
+    setIsRegisterMode(true)
+  }
+
+  const backToLogin = () => {
+    setIsRegisterMode(false)
+    setIsForgotPasswordMode(false)
+    setIsCodeVerificationMode(false)
+    setIsPhoneVerificationMode(false)
+    setIsRegistrationComplete(false)
+  }
+
+  const openForgotPassword = () => {
+    setIsForgotPasswordMode(true)
+  }
+
+  const resetForgotPasswordFlow = () => {
+    setIsForgotPasswordMode(false)
+    setIsCodeVerificationMode(false)
+    setForgotPasswordForm({ phone: '' })
+    setVerificationForm({ code: '' })
+    setGeneratedCode('')
+    setLoginModalOpen(false)
+  }
+
+  const resetRegistrationFlow = () => {
+    setIsRegisterMode(false)
+    setIsPhoneVerificationMode(false)
+    setIsRegistrationComplete(false)
+    setRegisterForm({ fullName: '', email: '', password: '', phone: '' })
+    setPhoneVerificationForm({ code: '' })
+    setPhoneVerificationCode('')
+    setLoginModalOpen(false)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Login/Register Modal */}
+      {loginModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md relative">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setLoginModalOpen(false)
+                setIsRegisterMode(false)
+                setIsForgotPasswordMode(false)
+                setIsCodeVerificationMode(false)
+                setIsPhoneVerificationMode(false)
+                setIsRegistrationComplete(false)
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-700">
+              <div className="flex items-center space-x-3 mb-2">
+                {(isRegisterMode || isForgotPasswordMode || isCodeVerificationMode || isPhoneVerificationMode) && !isRegistrationComplete && (
+                  <button
+                    onClick={backToLogin}
+                    className="text-gray-400 hover:text-white transition-colors mr-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                )}
+                <div className="bg-gradient-to-r from-blue-500 to-green-500 p-2 rounded-lg">
+                  <Trophy className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+                  ArenaXbet
+                </h2>
+              </div>
+              <p className="text-gray-400">
+                {isRegistrationComplete
+                  ? 'Cadastro finalizado com sucesso!'
+                  : isPhoneVerificationMode
+                    ? 'Verificar número do celular'
+                    : isRegisterMode 
+                      ? 'Crie sua conta e comece a ganhar!' 
+                      : isForgotPasswordMode 
+                        ? 'Recuperar senha'
+                        : isCodeVerificationMode
+                          ? 'Verificar código'
+                          : 'Entre na sua conta e comece a apostar!'
+                }
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {isRegistrationComplete ? (
+                // Registration Complete
+                <div className="text-center space-y-6">
+                  <div className="flex justify-center">
+                    <div className="bg-green-500/20 p-4 rounded-full">
+                      <CheckCircle className="w-16 h-16 text-green-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Bem-vindo à ArenaXbet!</h3>
+                    <p className="text-gray-400">
+                      Seu cadastro foi concluído com sucesso. Você já pode começar a apostar e aproveitar nossos bônus!
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Gift className="w-5 h-5 text-green-400" />
+                      <span className="text-green-400 font-semibold">Bônus Ativado!</span>
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      Seu bônus de <span className="text-green-400 font-bold">R$ 500</span> + <span className="text-blue-400 font-bold">50 giros grátis</span> está disponível!
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <Loader className="w-8 h-8 text-blue-400 animate-spin" />
+                  </div>
+                </div>
+              ) : isPhoneVerificationMode ? (
+                // Phone Verification Form
+                <form onSubmit={handlePhoneVerificationSubmit} className="space-y-4">
+                  <div className="text-center mb-6">
+                    <Phone className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                    <h3 className="text-white font-semibold mb-2">Verificar Celular</h3>
+                    <p className="text-gray-400 text-sm">
+                      Digite o código de 6 dígitos enviado para<br />
+                      <span className="text-green-400 font-medium">{registerForm.phone}</span>
+                    </p>
+                  </div>
+
+                  {/* Phone Code Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Código de Verificação
+                    </label>
+                    <div className="relative">
+                      <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        value={phoneVerificationForm.code}
+                        onChange={(e) => setPhoneVerificationForm({...phoneVerificationForm, code: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors text-center text-2xl tracking-widest"
+                        placeholder="000000"
+                        maxLength={6}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Verify Phone Button */}
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+                  >
+                    <CheckCircle className="inline-block w-5 h-5 mr-2" />
+                    Confirmar Celular
+                  </button>
+
+                  {/* Resend Code */}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newCode = Math.floor(100000 + Math.random() * 900000).toString()
+                        setPhoneVerificationCode(newCode)
+                        alert(`Novo código enviado: ${newCode}`)
+                      }}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                    >
+                      Reenviar código
+                    </button>
+                  </div>
+                </form>
+              ) : !isRegisterMode && !isForgotPasswordMode && !isCodeVerificationMode ? (
+                // Login Form
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                  {/* Email Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Email
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="email"
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="seu@email.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Senha
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="Sua senha"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Remember Me & Forgot Password */}
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="w-4 h-4 text-blue-500 bg-slate-700 border-slate-600 rounded focus:ring-blue-500" />
+                      <span className="ml-2 text-gray-400 text-sm">Lembrar de mim</span>
+                    </label>
+                    <button 
+                      type="button" 
+                      onClick={openForgotPassword}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+
+                  {/* Login Button */}
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+                  >
+                    Entrar e Ganhar Bônus
+                  </button>
+                </form>
+              ) : isForgotPasswordMode && !isCodeVerificationMode ? (
+                // Forgot Password Form
+                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  <div className="text-center mb-6">
+                    <Phone className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+                    <h3 className="text-white font-semibold mb-2">Recuperar Senha</h3>
+                    <p className="text-gray-400 text-sm">
+                      Digite o número do celular cadastrado para receber o código de verificação
+                    </p>
+                  </div>
+
+                  {/* Phone Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Número do Celular
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="tel"
+                        value={forgotPasswordForm.phone}
+                        onChange={(e) => setForgotPasswordForm({...forgotPasswordForm, phone: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="(11) 99999-9999"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Send Code Button */}
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+                  >
+                    <Phone className="inline-block w-5 h-5 mr-2" />
+                    Enviar Código
+                  </button>
+                </form>
+              ) : isCodeVerificationMode ? (
+                // Code Verification Form
+                <form onSubmit={handleCodeVerificationSubmit} className="space-y-4">
+                  <div className="text-center mb-6">
+                    <Shield className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                    <h3 className="text-white font-semibold mb-2">Verificar Código</h3>
+                    <p className="text-gray-400 text-sm">
+                      Digite o código de 6 dígitos enviado para<br />
+                      <span className="text-blue-400 font-medium">{forgotPasswordForm.phone}</span>
+                    </p>
+                  </div>
+
+                  {/* Code Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Código de Verificação
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        value={verificationForm.code}
+                        onChange={(e) => setVerificationForm({...verificationForm, code: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors text-center text-2xl tracking-widest"
+                        placeholder="000000"
+                        maxLength={6}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Verify Button */}
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+                  >
+                    <Shield className="inline-block w-5 h-5 mr-2" />
+                    Verificar Código
+                  </button>
+
+                  {/* Resend Code */}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newCode = Math.floor(100000 + Math.random() * 900000).toString()
+                        setGeneratedCode(newCode)
+                        alert(`Novo código enviado: ${newCode}`)
+                      }}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                    >
+                      Reenviar código
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                // Register Form
+                <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                  {/* Full Name Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Nome Completo
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        value={registerForm.fullName}
+                        onChange={(e) => setRegisterForm({...registerForm, fullName: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="Seu nome completo"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Gmail
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="email"
+                        value={registerForm.email}
+                        onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="seu@gmail.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Senha
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={registerForm.password}
+                        onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="Crie uma senha segura"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Phone Field */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Celular
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="tel"
+                        value={registerForm.phone}
+                        onChange={(e) => setRegisterForm({...registerForm, phone: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                        placeholder="(11) 99999-9999"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Register Button */}
+                  <button
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader className="inline-block w-5 h-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <User className="inline-block w-5 h-5 mr-2" />
+                        Concluir Cadastro
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {!isRegisterMode && !isForgotPasswordMode && !isCodeVerificationMode && !isPhoneVerificationMode && !isRegistrationComplete && (
+                <>
+                  {/* Divider */}
+                  <div className="my-6 flex items-center">
+                    <div className="flex-1 border-t border-slate-600"></div>
+                    <span className="px-4 text-gray-400 text-sm">ou</span>
+                    <div className="flex-1 border-t border-slate-600"></div>
+                  </div>
+
+                  {/* Register Link */}
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-4">Ainda não tem conta?</p>
+                    <button 
+                      onClick={openRegisterMode}
+                      className="w-full border-2 border-blue-500 text-blue-400 py-3 rounded-lg font-semibold hover:bg-blue-500 hover:text-white transition-all"
+                    >
+                      <User className="inline-block w-5 h-5 mr-2" />
+                      Criar Conta Grátis
+                    </button>
+                  </div>
+
+                  {/* Bonus Info */}
+                  <div className="mt-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Gift className="w-5 h-5 text-green-400" />
+                      <span className="text-green-400 font-semibold">Bônus de Boas-vindas</span>
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      Ganhe até <span className="text-green-400 font-bold">R$ 500</span> no seu primeiro depósito + <span className="text-blue-400 font-bold">50 giros grátis</span>!
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {isRegisterMode && !isPhoneVerificationMode && !isRegistrationComplete && (
+                <div className="mt-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Gift className="w-5 h-5 text-green-400" />
+                    <span className="text-green-400 font-semibold">Bônus de Cadastro</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">
+                    Ao se cadastrar, ganhe <span className="text-green-400 font-bold">R$ 500</span> de bônus + <span className="text-blue-400 font-bold">50 giros grátis</span> no seu primeiro depósito!
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="bg-slate-900/95 backdrop-blur-sm border-b border-blue-500/20 sticky top-0 z-50">
+      <header className="bg-slate-900/95 backdrop-blur-sm border-b border-blue-500/20 sticky top-0 z-40">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -113,7 +723,10 @@ export default function ArenaXbet() {
 
             {/* Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <button className="px-6 py-2 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all">
+              <button 
+                onClick={() => setLoginModalOpen(true)}
+                className="px-6 py-2 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all"
+              >
                 Entrar
               </button>
               <button className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 transition-all">
@@ -153,7 +766,10 @@ export default function ArenaXbet() {
                   Promoções
                 </button>
                 <div className="flex flex-col space-y-2 px-4 pt-4 border-t border-slate-700">
-                  <button className="px-4 py-2 border border-blue-500 text-blue-400 rounded-lg">
+                  <button 
+                    onClick={() => {setLoginModalOpen(true); setMobileMenuOpen(false)}}
+                    className="px-4 py-2 border border-blue-500 text-blue-400 rounded-lg"
+                  >
                     Entrar
                   </button>
                   <button className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg">
@@ -177,7 +793,10 @@ export default function ArenaXbet() {
             A melhor experiência em apostas esportivas e cassino online. Odds competitivas, pagamentos rápidos e diversão garantida!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105">
+            <button 
+              onClick={() => setLoginModalOpen(true)}
+              className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+            >
               <Gift className="inline-block w-5 h-5 mr-2" />
               Cadastre-se e Ganhe Bônus
             </button>
