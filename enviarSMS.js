@@ -8,9 +8,10 @@ export async function enviarSMS(para, mensagem) {
   try {
     const sms = await client.messages.create({
       body: mensagem,
-      from: process.env.TWILIO_PHONE_NUMBER, // número Twilio puxado das variáveis
-      to: para, // número de destino (ex: +5511988805285)
+      from: process.env.TWILIO_PHONE_NUMBER, // número Twilio (+15312245450)
+      to: para // número de destino (ex: +5511988805285)
     });
+
     console.log('✅ SMS enviado com sucesso:', sms.sid);
   } catch (erro) {
     console.error('❌ Erro ao enviar SMS:', erro);
